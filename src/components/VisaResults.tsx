@@ -1,15 +1,22 @@
+import { useState } from "react";
 import { 
   CheckCircle2, 
   Clock, 
   FileText, 
   AlertTriangle, 
-  DollarSign,
-  Calendar,
   ArrowRight,
-  Lightbulb,
+  ChevronDown,
+  ChevronUp,
+  Bot,
+  Upload,
+  MessageCircle,
+  Shield,
   XCircle
 } from "lucide-react";
 import { Button } from "./ui/button";
+import DocumentUpload from "./DocumentUpload";
+import ChatInterface from "./ChatInterface";
+import RejectionRiskPanel from "./RejectionRiskPanel";
 
 interface VisaResultsProps {
   nationality: string;
@@ -19,218 +26,213 @@ interface VisaResultsProps {
 }
 
 const countryNames: Record<string, string> = {
-  US: "United States",
-  GB: "United Kingdom", 
-  CA: "Canada",
-  AU: "Australia",
-  DE: "Germany",
-  FR: "France",
-  JP: "Japan",
-  SG: "Singapore",
-  AE: "UAE",
-  NZ: "New Zealand",
-  IN: "India",
-  CN: "China",
-  BR: "Brazil",
-  MX: "Mexico",
-  ZA: "South Africa",
+  US: "United States", GB: "United Kingdom", CA: "Canada", AU: "Australia",
+  DE: "Germany", FR: "France", JP: "Japan", SG: "Singapore", AE: "UAE",
+  NZ: "New Zealand", IN: "India", CN: "China", BR: "Brazil", MX: "Mexico",
+  ZA: "South Africa", NG: "Nigeria", PH: "Philippines", PK: "Pakistan",
 };
 
 const countryFlags: Record<string, string> = {
-  US: "🇺🇸", GB: "🇬🇧", CA: "🇨🇦", AU: "🇦🇺", DE: "🇩🇪",
-  FR: "🇫🇷", JP: "🇯🇵", SG: "🇸🇬", AE: "🇦🇪", NZ: "🇳🇿",
-  IN: "🇮🇳", CN: "🇨🇳", BR: "🇧🇷", MX: "🇲🇽", ZA: "🇿🇦",
+  US: "🇺🇸", GB: "🇬🇧", CA: "🇨🇦", AU: "🇦🇺", DE: "🇩🇪", FR: "🇫🇷",
+  JP: "🇯🇵", SG: "🇸🇬", AE: "🇦🇪", NZ: "🇳🇿", IN: "🇮🇳", CN: "🇨🇳",
+  BR: "🇧🇷", MX: "🇲🇽", ZA: "🇿🇦", NG: "🇳🇬", PH: "🇵🇭", PK: "🇵🇰",
 };
 
 const purposeLabels: Record<string, string> = {
-  tourism: "Tourism",
-  business: "Business",
-  work: "Work",
-  study: "Study",
-  "digital-nomad": "Digital Nomad",
-  family: "Family Visit",
-  medical: "Medical",
-  transit: "Transit",
+  work: "Work Visa",
+  study: "Student Visa", 
+  travel: "Tourist Visa",
 };
 
 const VisaResults = ({ nationality, destination, purpose, onReset }: VisaResultsProps) => {
-  // Mock data - in a real app, this would come from an API
+  const [showAIExplanation, setShowAIExplanation] = useState(false);
+  const [activeTab, setActiveTab] = useState<'results' | 'upload' | 'risk' | 'chat'>('results');
+
   const visaInfo = {
-    required: true,
-    type: "Tourist Visa (B-2)",
-    processingTime: "3-5 weeks",
-    validity: "Up to 6 months",
-    fee: "$160 USD",
+    type: purpose === 'work' ? "Employment Visa" : purpose === 'study' ? "Student Visa" : "Tourist Visa",
+    processingTime: purpose === 'work' ? "6-12 weeks" : purpose === 'study' ? "4-8 weeks" : "2-4 weeks",
     documents: [
-      { name: "Valid Passport", description: "Must be valid for at least 6 months beyond your stay", required: true },
-      { name: "DS-160 Form", description: "Online Nonimmigrant Visa Application form", required: true },
-      { name: "Passport Photo", description: "2x2 inch photo meeting specific requirements", required: true },
-      { name: "Proof of Funds", description: "Bank statements showing sufficient funds for your trip", required: true },
-      { name: "Travel Itinerary", description: "Flight reservations and accommodation details", required: true },
-      { name: "Employment Letter", description: "Letter from employer confirming your job and leave", required: false },
-      { name: "Previous Visa Copies", description: "If you've had visas to this or other countries", required: false },
-    ],
-    tips: [
-      "Apply at least 3 months before your intended travel date",
-      "Be prepared to demonstrate strong ties to your home country",
-      "Bring original documents to your visa interview, not just copies",
-      "Practice answering common interview questions confidently",
-    ],
+      { name: "Passport (valid 6+ months)", required: true },
+      { name: purpose === 'work' ? "Job Offer Letter" : purpose === 'study' ? "Admission Letter" : "Travel Itinerary", required: true },
+      { name: "Proof of Qualifications", required: purpose === 'work' || purpose === 'study' },
+      { name: "Financial Proof", required: true },
+      { name: "Health Insurance", required: true },
+    ].filter(d => d.required),
     rejectionReasons: [
-      "Insufficient proof of ties to home country",
-      "Incomplete documentation",
-      "Inconsistent information in application",
-      "Unable to demonstrate purpose of travel",
+      "Incomplete financial proof",
+      "Unverified employer/institution",
+      "Insufficient qualifications",
     ],
+    aiExplanation: purpose === 'work' 
+      ? `You need a job offer from a ${countryNames[destination]} employer. The salary must meet the minimum threshold set by immigration authorities. Bank statements should show stable income over the last 3 months. Your employer may need to prove they couldn't find a local candidate for this role.`
+      : purpose === 'study'
+      ? `You need an acceptance letter from a recognized ${countryNames[destination]} educational institution. You must demonstrate sufficient funds to cover tuition and living expenses for the duration of your studies. Health insurance coverage is mandatory.`
+      : `You'll need to show proof of accommodation, return flights, and sufficient funds for your stay. Travel insurance is highly recommended. Make sure your passport is valid for at least 6 months beyond your planned departure date.`,
   };
 
   return (
-    <section className="py-16 md:py-24 bg-gradient-hero">
+    <section className="py-8 md:py-12 bg-gradient-hero">
       <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-3 mb-4">
-              <span className="text-4xl">{countryFlags[nationality]}</span>
-              <ArrowRight className="w-6 h-6 text-muted-foreground" />
-              <span className="text-4xl">{countryFlags[destination]}</span>
+          <div className="bg-card rounded-2xl shadow-xl border border-border overflow-hidden mb-6">
+            <div className="bg-gradient-dark p-6 text-center">
+              <div className="inline-flex items-center gap-3 mb-2">
+                <span className="text-3xl">{countryFlags[nationality]}</span>
+                <ArrowRight className="w-5 h-5 text-primary-foreground/70" />
+                <span className="text-3xl">{countryFlags[destination]}</span>
+              </div>
+              <h2 className="text-xl md:text-2xl font-bold text-primary-foreground">
+                Visa Results: {countryNames[nationality]} → {countryNames[destination]}
+              </h2>
+              <p className="text-primary-foreground/70 mt-1">({purposeLabels[purpose]})</p>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-              Visa Requirements for {countryNames[destination]}
-            </h2>
-            <p className="text-lg text-muted-foreground">
-              {countryNames[nationality]} passport holder • {purposeLabels[purpose]} travel
-            </p>
-          </div>
 
-          {/* Status card */}
-          <div className={`rounded-2xl p-6 mb-8 ${visaInfo.required ? 'bg-coral/10 border border-coral/30' : 'bg-teal/10 border border-teal/30'}`}>
-            <div className="flex items-center gap-4">
-              {visaInfo.required ? (
-                <div className="p-3 rounded-full bg-coral/20">
-                  <FileText className="w-6 h-6 text-coral" />
-                </div>
-              ) : (
-                <div className="p-3 rounded-full bg-teal/20">
-                  <CheckCircle2 className="w-6 h-6 text-teal" />
-                </div>
-              )}
-              <div>
-                <h3 className="text-xl font-semibold text-foreground">
-                  {visaInfo.required ? "Visa Required" : "Visa Not Required"}
-                </h3>
-                <p className="text-muted-foreground">
-                  {visaInfo.required 
-                    ? `You need a ${visaInfo.type} to enter ${countryNames[destination]}`
-                    : `You can visit ${countryNames[destination]} visa-free for up to 90 days`
-                  }
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick info cards */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div className="bg-card rounded-xl p-5 border border-border shadow-sm">
-              <div className="flex items-center gap-3 mb-2">
-                <Clock className="w-5 h-5 text-primary" />
-                <span className="text-sm text-muted-foreground">Processing Time</span>
-              </div>
-              <p className="text-lg font-semibold text-foreground">{visaInfo.processingTime}</p>
-            </div>
-            <div className="bg-card rounded-xl p-5 border border-border shadow-sm">
-              <div className="flex items-center gap-3 mb-2">
-                <Calendar className="w-5 h-5 text-teal" />
-                <span className="text-sm text-muted-foreground">Validity</span>
-              </div>
-              <p className="text-lg font-semibold text-foreground">{visaInfo.validity}</p>
-            </div>
-            <div className="bg-card rounded-xl p-5 border border-border shadow-sm">
-              <div className="flex items-center gap-3 mb-2">
-                <DollarSign className="w-5 h-5 text-coral" />
-                <span className="text-sm text-muted-foreground">Application Fee</span>
-              </div>
-              <p className="text-lg font-semibold text-foreground">{visaInfo.fee}</p>
-            </div>
-            <div className="bg-card rounded-xl p-5 border border-border shadow-sm">
-              <div className="flex items-center gap-3 mb-2">
-                <FileText className="w-5 h-5 text-primary" />
-                <span className="text-sm text-muted-foreground">Documents</span>
-              </div>
-              <p className="text-lg font-semibold text-foreground">{visaInfo.documents.length} Required</p>
-            </div>
-          </div>
-
-          {/* Documents checklist */}
-          <div className="bg-card rounded-2xl border border-border shadow-lg p-6 md:p-8 mb-8">
-            <h3 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-primary" />
-              Required Documents
-            </h3>
-            <div className="space-y-4">
-              {visaInfo.documents.map((doc, index) => (
-                <div 
-                  key={index}
-                  className={`flex items-start gap-4 p-4 rounded-xl ${doc.required ? 'bg-secondary/50' : 'bg-secondary/30'}`}
+            {/* Tab Navigation */}
+            <div className="flex border-b border-border">
+              {[
+                { id: 'results', label: 'Results', icon: FileText },
+                { id: 'upload', label: 'Upload Docs', icon: Upload },
+                { id: 'risk', label: 'Risk Analysis', icon: Shield },
+                { id: 'chat', label: 'Ask AI', icon: MessageCircle },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 text-sm font-medium transition-all ${
+                    activeTab === tab.id
+                      ? 'text-primary border-b-2 border-primary bg-primary/5'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                  }`}
                 >
-                  <div className={`mt-0.5 p-1 rounded-full ${doc.required ? 'bg-primary/10' : 'bg-muted'}`}>
-                    <CheckCircle2 className={`w-4 h-4 ${doc.required ? 'text-primary' : 'text-muted-foreground'}`} />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-medium text-foreground">{doc.name}</h4>
-                      {doc.required && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-coral/10 text-coral font-medium">
-                          Required
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">{doc.description}</p>
-                  </div>
-                </div>
+                  <tab.icon className="w-4 h-4" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                </button>
               ))}
             </div>
+
+            {/* Tab Content */}
+            <div className="p-6">
+              {activeTab === 'results' && (
+                <div className="space-y-6">
+                  {/* Eligible Visa Type */}
+                  <div className="space-y-3">
+                    <h3 className="flex items-center gap-2 text-sm font-semibold text-primary">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                      Eligible Visa Type
+                    </h3>
+                    <div className="pl-4 border-l-2 border-primary/20">
+                      <p className="font-medium text-foreground">{countryNames[destination]} {visaInfo.type}</p>
+                    </div>
+                  </div>
+
+                  {/* Required Documents */}
+                  <div className="space-y-3">
+                    <h3 className="flex items-center gap-2 text-sm font-semibold text-primary">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                      Required Documents
+                    </h3>
+                    <div className="pl-4 space-y-2">
+                      {visaInfo.documents.map((doc, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-teal shrink-0" />
+                          <span className="text-foreground">{doc.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Estimated Timeline */}
+                  <div className="space-y-3">
+                    <h3 className="flex items-center gap-2 text-sm font-semibold text-primary">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                      Estimated Timeline
+                    </h3>
+                    <div className="pl-4 flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-foreground">{visaInfo.processingTime} (varies by embassy)</span>
+                    </div>
+                  </div>
+
+                  {/* Common Rejection Reasons */}
+                  <div className="space-y-3">
+                    <h3 className="flex items-center gap-2 text-sm font-semibold text-primary">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                      Common Rejection Reasons
+                    </h3>
+                    <div className="pl-4 space-y-2">
+                      {visaInfo.rejectionReasons.map((reason, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <AlertTriangle className="w-4 h-4 text-coral shrink-0" />
+                          <span className="text-muted-foreground">{reason}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* AI Explanation Panel */}
+                  <div className="mt-6 rounded-xl border border-border overflow-hidden">
+                    <button
+                      onClick={() => setShowAIExplanation(!showAIExplanation)}
+                      className="w-full flex items-center justify-between p-4 bg-secondary/50 hover:bg-secondary/70 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Bot className="w-5 h-5 text-primary" />
+                        <span className="font-medium text-foreground">AI Explanation</span>
+                      </div>
+                      {showAIExplanation ? (
+                        <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                      )}
+                    </button>
+                    {showAIExplanation && (
+                      <div className="p-4 bg-background border-t border-border">
+                        <p className="text-muted-foreground leading-relaxed italic">
+                          "{visaInfo.aiExplanation}"
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* CTA Button */}
+                  <Button 
+                    onClick={() => setActiveTab('upload')}
+                    variant="hero" 
+                    size="lg" 
+                    className="w-full"
+                  >
+                    <Upload className="w-5 h-5" />
+                    Upload Documents for AI Check
+                  </Button>
+                </div>
+              )}
+
+              {activeTab === 'upload' && (
+                <DocumentUpload documents={visaInfo.documents} />
+              )}
+
+              {activeTab === 'risk' && (
+                <RejectionRiskPanel 
+                  rejectionReasons={visaInfo.rejectionReasons}
+                  purpose={purpose}
+                />
+              )}
+
+              {activeTab === 'chat' && (
+                <ChatInterface 
+                  nationality={nationality}
+                  destination={destination}
+                  purpose={purpose}
+                />
+              )}
+            </div>
           </div>
 
-          {/* Tips and Warnings */}
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
-            {/* Pro Tips */}
-            <div className="bg-card rounded-2xl border border-border shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                <Lightbulb className="w-5 h-5 text-teal" />
-                Pro Tips
-              </h3>
-              <ul className="space-y-3">
-                {visaInfo.tips.map((tip, index) => (
-                  <li key={index} className="flex items-start gap-3 text-sm text-muted-foreground">
-                    <CheckCircle2 className="w-4 h-4 text-teal mt-0.5 shrink-0" />
-                    <span>{tip}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Common Rejection Reasons */}
-            <div className="bg-card rounded-2xl border border-border shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-coral" />
-                Common Rejection Reasons
-              </h3>
-              <ul className="space-y-3">
-                {visaInfo.rejectionReasons.map((reason, index) => (
-                  <li key={index} className="flex items-start gap-3 text-sm text-muted-foreground">
-                    <XCircle className="w-4 h-4 text-coral mt-0.5 shrink-0" />
-                    <span>{reason}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* CTA */}
+          {/* Back button */}
           <div className="text-center">
-            <Button variant="hero-outline" size="lg" onClick={onReset}>
-              Check Another Destination
+            <Button variant="hero-outline" onClick={onReset}>
+              ← Check Another Destination
             </Button>
           </div>
         </div>
