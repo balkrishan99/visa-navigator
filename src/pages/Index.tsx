@@ -1,12 +1,54 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import Header from "@/components/Header";
+import HeroSection from "@/components/HeroSection";
+import VisaForm from "@/components/VisaForm";
+import VisaResults from "@/components/VisaResults";
+import FeaturesSection from "@/components/FeaturesSection";
+import HowItWorksSection from "@/components/HowItWorksSection";
+import Footer from "@/components/Footer";
+
+interface VisaData {
+  nationality: string;
+  destination: string;
+  purpose: string;
+}
 
 const Index = () => {
+  const [visaData, setVisaData] = useState<VisaData | null>(null);
+
+  const handleFormSubmit = (data: VisaData) => {
+    setVisaData(data);
+    // Scroll to results
+    setTimeout(() => {
+      document.getElementById('visa-checker')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  const handleReset = () => {
+    setVisaData(null);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main>
+        <HeroSection />
+        
+        {visaData ? (
+          <VisaResults 
+            nationality={visaData.nationality}
+            destination={visaData.destination}
+            purpose={visaData.purpose}
+            onReset={handleReset}
+          />
+        ) : (
+          <VisaForm onSubmit={handleFormSubmit} />
+        )}
+        
+        <FeaturesSection />
+        <HowItWorksSection />
+      </main>
+      <Footer />
     </div>
   );
 };
