@@ -1,10 +1,15 @@
-import { ArrowRight, Sparkles } from "lucide-react";
-import { Button } from "./ui/button";
-import Globe from "./Globe";
+import { CheckCircle2 } from "lucide-react";
+
+const features = [
+  "Personalized Requirements",
+  "Plain-Language Explanations",
+  "Rejection Risk Insights",
+  "AI Document Check",
+];
 
 const HeroSection = () => {
   return (
-    <section className="relative pt-24 md:pt-32 pb-16 md:pb-24 overflow-hidden bg-gradient-hero">
+    <section className="relative pt-24 md:pt-32 pb-8 md:pb-12 overflow-hidden bg-gradient-hero">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
@@ -12,59 +17,28 @@ const HeroSection = () => {
       </div>
 
       <div className="container mx-auto px-4">
-        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
-          {/* Left content */}
-          <div className="flex-1 text-center lg:text-left">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in-up">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">AI-Powered Immigration Assistant</span>
-            </div>
+        <div className="max-w-3xl mx-auto text-center">
+          {/* Logo/Brand */}
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4 animate-fade-in-up">
+            Visa<span className="text-gradient">Verse</span> AI
+          </h1>
 
-            {/* Heading */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6 animate-fade-in-up animation-delay-200">
-              Navigate Visa Requirements{" "}
-              <span className="text-gradient">with Confidence</span>
-            </h1>
+          {/* Tagline */}
+          <p className="text-xl md:text-2xl text-muted-foreground mb-12 animate-fade-in-up animation-delay-200">
+            Simplify Visas. Move Without Borders.
+          </p>
 
-            {/* Subheading */}
-            <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 animate-fade-in-up animation-delay-400">
-              Get personalized visa guidance in plain language. Our AI translates complex immigration rules into clear, actionable steps tailored to your journey.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start animate-fade-in-up animation-delay-600">
-              <Button variant="hero" size="xl">
-                Check Your Visa Requirements
-                <ArrowRight className="w-5 h-5" />
-              </Button>
-              <Button variant="hero-outline" size="lg">
-                Learn How It Works
-              </Button>
-            </div>
-
-            {/* Trust indicators */}
-            <div className="flex items-center gap-6 mt-10 justify-center lg:justify-start animate-fade-in-up animation-delay-600">
-              <div className="flex items-center gap-2">
-                <div className="flex -space-x-2">
-                  {['🇺🇸', '🇬🇧', '🇨🇦', '🇦🇺'].map((flag, i) => (
-                    <div key={i} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-lg border-2 border-background">
-                      {flag}
-                    </div>
-                  ))}
-                </div>
-                <span className="text-sm text-muted-foreground">190+ Countries</span>
+          {/* Feature badges */}
+          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 animate-fade-in-up animation-delay-400">
+            {features.map((feature, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border shadow-sm"
+              >
+                <CheckCircle2 className="w-4 h-4 text-teal" />
+                <span className="text-sm font-medium text-foreground">{feature}</span>
               </div>
-              <div className="h-6 w-px bg-border" />
-              <div className="text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">10,000+</span> users helped
-              </div>
-            </div>
-          </div>
-
-          {/* Right content - Globe */}
-          <div className="flex-1 flex justify-center lg:justify-end">
-            <Globe />
+            ))}
           </div>
         </div>
       </div>

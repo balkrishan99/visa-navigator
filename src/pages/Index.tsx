@@ -18,7 +18,6 @@ const Index = () => {
 
   const handleFormSubmit = (data: VisaData) => {
     setVisaData(data);
-    // Scroll to results
     setTimeout(() => {
       document.getElementById('visa-checker')?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
@@ -26,6 +25,7 @@ const Index = () => {
 
   const handleReset = () => {
     setVisaData(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -45,8 +45,12 @@ const Index = () => {
           <VisaForm onSubmit={handleFormSubmit} />
         )}
         
-        <FeaturesSection />
-        <HowItWorksSection />
+        {!visaData && (
+          <>
+            <FeaturesSection />
+            <HowItWorksSection />
+          </>
+        )}
       </main>
       <Footer />
     </div>
