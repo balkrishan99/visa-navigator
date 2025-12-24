@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>404 - Not Found</title>
+    <meta name="robots" content="noindex">
+  </head>
+  <body>
+    <h1>404</h1>
+    <p>Page not found.</p>
+    <script>
+      // SPA fallback for GitHub Pages using hash routing
+      if (
+        location.pathname.startsWith('/visa-navigator/') &&
+        !location.pathname.endsWith('/index.html')
+      ) {
+        const path = location.pathname.replace('/visa-navigator', '');
+        const search = location.search || '';
+        const hash = location.hash || '';
+        window.location.replace(
+          '/visa-navigator/index.html#' + path + search + hash
+        );
+      }
+    </script>
+  </body>
+</html>
