@@ -2,30 +2,14 @@ import { AlertTriangle, CheckCircle2, Shield, TrendingUp } from "lucide-react";
 
 interface RejectionRiskPanelProps {
   rejectionReasons: string[];
+  tips: string[];
   purpose: string;
 }
 
 type RiskLevel = 'Low' | 'Medium' | 'High';
 
-const RejectionRiskPanel = ({ rejectionReasons, purpose }: RejectionRiskPanelProps) => {
-  const riskLevel: RiskLevel = "Medium";
-  
-  const tips = purpose === 'work' ? [
-    "Maintain consistent bank balance over 3+ months",
-    "Include employer registration/company details",
-    "Add cover letter explaining your role and qualifications",
-    "Provide employment history with references",
-  ] : purpose === 'study' ? [
-    "Show proof of tuition payment or scholarship",
-    "Include academic transcripts and certificates",
-    "Demonstrate language proficiency if required",
-    "Provide accommodation confirmation",
-  ] : [
-    "Book refundable flights and accommodation",
-    "Show ties to home country (job, property, family)",
-    "Provide detailed travel itinerary",
-    "Include travel insurance coverage",
-  ];
+const RejectionRiskPanel = ({ rejectionReasons, tips, purpose }: RejectionRiskPanelProps) => {
+  const riskLevel: RiskLevel = purpose === 'travel' ? 'Low' : 'Medium';
 
   return (
     <div className="space-y-6">

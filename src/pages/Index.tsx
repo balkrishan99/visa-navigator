@@ -5,6 +5,7 @@ import VisaForm from "@/components/VisaForm";
 import VisaResults from "@/components/VisaResults";
 import FeaturesSection from "@/components/FeaturesSection";
 import HowItWorksSection from "@/components/HowItWorksSection";
+import FAQSection from "@/components/FAQSection";
 import Footer from "@/components/Footer";
 
 interface VisaData {
@@ -49,6 +50,7 @@ const Index = () => {
           <>
             <FeaturesSection />
             <HowItWorksSection />
+            <FAQSection />
           </>
         )}
       </main>
