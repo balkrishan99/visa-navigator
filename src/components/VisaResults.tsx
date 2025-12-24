@@ -200,7 +200,11 @@ const VisaResults = ({ nationality, destination, purpose, onReset }: VisaResults
               )}
 
               {activeTab === 'upload' && (
-                <DocumentUpload documents={visaInfo.documents} />
+                <DocumentUpload 
+                  documents={visaInfo.documents} 
+                  purpose={purpose}
+                  destination={destination}
+                />
               )}
 
               {activeTab === 'risk' && (

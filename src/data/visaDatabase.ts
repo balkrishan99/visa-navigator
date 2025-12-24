@@ -27,6 +27,20 @@ export const countries = [
   { code: "AU", name: "Australia", flag: "🇦🇺" },
   { code: "DE", name: "Germany", flag: "🇩🇪" },
   { code: "FR", name: "France", flag: "🇫🇷" },
+  { code: "IT", name: "Italy", flag: "🇮🇹" },
+  { code: "ES", name: "Spain", flag: "🇪🇸" },
+  { code: "NL", name: "Netherlands", flag: "🇳🇱" },
+  { code: "PT", name: "Portugal", flag: "🇵🇹" },
+  { code: "CH", name: "Switzerland", flag: "🇨🇭" },
+  { code: "SE", name: "Sweden", flag: "🇸🇪" },
+  { code: "NO", name: "Norway", flag: "🇳🇴" },
+  { code: "DK", name: "Denmark", flag: "🇩🇰" },
+  { code: "BE", name: "Belgium", flag: "🇧🇪" },
+  { code: "AT", name: "Austria", flag: "🇦🇹" },
+  { code: "IE", name: "Ireland", flag: "🇮🇪" },
+  { code: "PL", name: "Poland", flag: "🇵🇱" },
+  { code: "GR", name: "Greece", flag: "🇬🇷" },
+  { code: "CZ", name: "Czech Republic", flag: "🇨🇿" },
   { code: "JP", name: "Japan", flag: "🇯🇵" },
   { code: "SG", name: "Singapore", flag: "🇸🇬" },
   { code: "AE", name: "UAE", flag: "🇦🇪" },
@@ -39,49 +53,18 @@ export const countries = [
   { code: "NG", name: "Nigeria", flag: "🇳🇬" },
   { code: "PH", name: "Philippines", flag: "🇵🇭" },
   { code: "PK", name: "Pakistan", flag: "🇵🇰" },
+  { code: "KR", name: "South Korea", flag: "🇰🇷" },
+  { code: "TH", name: "Thailand", flag: "🇹🇭" },
+  { code: "MY", name: "Malaysia", flag: "🇲🇾" },
 ] as const;
 
-export const countryNames: Record<string, string> = {
-  US: "United States",
-  GB: "United Kingdom",
-  CA: "Canada",
-  AU: "Australia",
-  DE: "Germany",
-  FR: "France",
-  JP: "Japan",
-  SG: "Singapore",
-  AE: "UAE",
-  NZ: "New Zealand",
-  IN: "India",
-  CN: "China",
-  BR: "Brazil",
-  MX: "Mexico",
-  ZA: "South Africa",
-  NG: "Nigeria",
-  PH: "Philippines",
-  PK: "Pakistan",
-};
+export const countryNames: Record<string, string> = Object.fromEntries(
+  countries.map(c => [c.code, c.name])
+);
 
-export const countryFlags: Record<string, string> = {
-  US: "🇺🇸",
-  GB: "🇬🇧",
-  CA: "🇨🇦",
-  AU: "🇦🇺",
-  DE: "🇩🇪",
-  FR: "🇫🇷",
-  JP: "🇯🇵",
-  SG: "🇸🇬",
-  AE: "🇦🇪",
-  NZ: "🇳🇿",
-  IN: "🇮🇳",
-  CN: "🇨🇳",
-  BR: "🇧🇷",
-  MX: "🇲🇽",
-  ZA: "🇿🇦",
-  NG: "🇳🇬",
-  PH: "🇵🇭",
-  PK: "🇵🇰",
-};
+export const countryFlags: Record<string, string> = Object.fromEntries(
+  countries.map(c => [c.code, c.flag])
+);
 
 // Default visa requirements (used when specific country pair data isn't available)
 const defaultVisaRequirements: CountryVisaInfo = {
@@ -296,6 +279,174 @@ const countrySpecificRequirements: Record<string, Partial<Record<string, Partial
       },
     },
   },
+  IT: {
+    default: {
+      work: {
+        ...defaultVisaRequirements.work,
+        visaType: "Nulla Osta / Work Visa",
+        processingTime: "4-12 weeks",
+        fees: "€116",
+        documents: [
+          ...defaultVisaRequirements.work.documents,
+          { name: "Nulla Osta", description: "Authorization from Italian immigration office", required: true },
+          { name: "Codice Fiscale", description: "Italian tax code (may be obtained on arrival)", required: false },
+        ],
+        rejectionReasons: [
+          ...defaultVisaRequirements.work.rejectionReasons,
+          "Nulla Osta not approved by Sportello Unico",
+          "Employer quota exhausted for the year",
+        ],
+        tips: [
+          "Apply early as Italy has annual work visa quotas (Decreto Flussi)",
+          "Ensure employer applies for Nulla Osta before your visa application",
+          "All documents must be translated into Italian and apostilled",
+          "Health insurance must meet Schengen minimum coverage (€30,000)",
+        ],
+      },
+      study: {
+        ...defaultVisaRequirements.study,
+        visaType: "Student Visa (Type D)",
+        processingTime: "3-8 weeks",
+        fees: "€50",
+        documents: [
+          ...defaultVisaRequirements.study.documents,
+          { name: "Pre-enrollment Confirmation", description: "Proof of pre-enrollment at Italian university", required: true },
+          { name: "Proof of Accommodation", description: "Housing arrangement for first year", required: true },
+        ],
+        tips: [
+          "Pre-enroll through Universitaly portal for most universities",
+          "Demonstrate at least €6,000 per year for living expenses",
+          "Italian language courses may require A2-B1 proficiency",
+          "Apply at least 2 months before course start date",
+        ],
+      },
+      travel: {
+        ...defaultVisaRequirements.travel,
+        visaType: "Schengen Visa (Type C)",
+        processingTime: "2-4 weeks",
+        fees: "€80",
+        validity: "Up to 90 days in 180-day period",
+        tips: [
+          "Apply to Italy if it's your main destination in Schengen area",
+          "Show complete day-by-day itinerary",
+          "Travel insurance must cover all Schengen countries",
+          "Book appointments early during peak tourist season",
+        ],
+      },
+    },
+  },
+  ES: {
+    default: {
+      work: {
+        ...defaultVisaRequirements.work,
+        visaType: "Work Visa / Autorizacion de Trabajo",
+        processingTime: "4-12 weeks",
+        fees: "€80",
+        documents: [
+          ...defaultVisaRequirements.work.documents,
+          { name: "Work Authorization", description: "Approval from Spanish Ministry of Labor", required: true },
+          { name: "NIE Number", description: "Foreigner identity number (obtained on arrival)", required: false },
+        ],
+        rejectionReasons: [
+          ...defaultVisaRequirements.work.rejectionReasons,
+          "Position not on shortage occupation list",
+          "Employer failed to meet local hiring requirements",
+        ],
+        tips: [
+          "Highly-skilled professionals may qualify for faster EU Blue Card process",
+          "Digital Nomad Visa available for remote workers earning 200% of minimum wage",
+          "All documents require apostille and sworn translation to Spanish",
+          "Consider Golden Visa if investing €500,000+ in Spanish property",
+        ],
+      },
+      study: {
+        ...defaultVisaRequirements.study,
+        visaType: "Student Visa (Visado de Estudiante)",
+        processingTime: "4-8 weeks",
+        fees: "€80",
+        documents: [
+          ...defaultVisaRequirements.study.documents,
+          { name: "Proof of Accommodation", description: "Housing arrangement in Spain", required: true },
+          { name: "Health Certificate", description: "Medical certificate from authorized doctor", required: true },
+        ],
+        tips: [
+          "Students can work up to 20 hours per week with authorization",
+          "Private health insurance required for full duration",
+          "Show financial means of €600+ per month",
+          "Masters students can apply for job-seeker extension after graduation",
+        ],
+      },
+      travel: {
+        ...defaultVisaRequirements.travel,
+        visaType: "Schengen Visa (Type C)",
+        processingTime: "2-3 weeks",
+        fees: "€80",
+        validity: "Up to 90 days in 180-day period",
+        tips: [
+          "Spain processes Schengen visas relatively quickly",
+          "Show travel insurance with €30,000 minimum coverage",
+          "Apply at BLS or VFS center in your country",
+          "Detailed travel itinerary improves approval chances",
+        ],
+      },
+    },
+  },
+  NL: {
+    default: {
+      work: {
+        ...defaultVisaRequirements.work,
+        visaType: "Highly Skilled Migrant Visa (Kennismigrant)",
+        processingTime: "2-6 weeks",
+        fees: "€210",
+        documents: [
+          ...defaultVisaRequirements.work.documents,
+          { name: "IND Recognized Sponsor", description: "Employment with IND-recognized company", required: true },
+          { name: "Antecedents Certificate", description: "Declaration of no criminal record", required: true },
+        ],
+        rejectionReasons: [
+          ...defaultVisaRequirements.work.rejectionReasons,
+          "Salary below Kennismigrant threshold",
+          "Employer not IND-recognized sponsor",
+        ],
+        tips: [
+          "Highly skilled migrant visa has salary thresholds (age-dependent)",
+          "30% tax ruling may apply for first 5 years",
+          "Orientation Year visa available for recent graduates",
+          "Spouse gets open work permit automatically",
+        ],
+      },
+      study: {
+        ...defaultVisaRequirements.study,
+        visaType: "Student Residence Permit (MVV + VVR)",
+        processingTime: "4-8 weeks",
+        fees: "€210",
+        documents: [
+          ...defaultVisaRequirements.study.documents,
+          { name: "Proof of Funds", description: "€13,000+ in blocked account or scholarship proof", required: true },
+          { name: "TB Test", description: "Tuberculosis test for certain nationalities", required: false },
+        ],
+        tips: [
+          "University handles residence permit application (TEV procedure)",
+          "Dutch courses available but most masters are in English",
+          "Students can work 16 hours/week during studies",
+          "Orientation Year available after graduation",
+        ],
+      },
+      travel: {
+        ...defaultVisaRequirements.travel,
+        visaType: "Schengen Visa (Type C)",
+        processingTime: "2-4 weeks",
+        fees: "€80",
+        validity: "Up to 90 days in 180-day period",
+        tips: [
+          "Amsterdam Schiphol is major European hub - apply here for multi-country trips",
+          "VFS Global handles applications in most countries",
+          "Strong ties to home country are critical for approval",
+          "Consider applying in winter for faster processing",
+        ],
+      },
+    },
+  },
   SG: {
     default: {
       work: {
@@ -306,6 +457,119 @@ const countrySpecificRequirements: Record<string, Partial<Record<string, Partial
         documents: [
           ...defaultVisaRequirements.work.documents.filter(d => d.name !== "Health Insurance"),
           { name: "Educational Certificates", description: "Verified copies of degrees and diplomas", required: true },
+        ],
+      },
+    },
+  },
+  PT: {
+    default: {
+      work: {
+        ...defaultVisaRequirements.work,
+        visaType: "Work Visa / Tech Visa",
+        processingTime: "4-8 weeks",
+        fees: "€90",
+        documents: [
+          ...defaultVisaRequirements.work.documents,
+          { name: "SEF Approval", description: "Immigration service preliminary approval", required: true },
+          { name: "NIF Number", description: "Portuguese tax identification number", required: false },
+        ],
+        tips: [
+          "Tech Visa offers fast-track for certified tech companies",
+          "D7 Passive Income Visa for remote workers/retirees",
+          "All documents need apostille and Portuguese translation",
+          "Portugal offers path to EU citizenship after 5 years",
+        ],
+      },
+      travel: {
+        ...defaultVisaRequirements.travel,
+        visaType: "Schengen Visa (Type C)",
+        processingTime: "2-4 weeks",
+        fees: "€80",
+        validity: "Up to 90 days in 180-day period",
+      },
+    },
+  },
+  CH: {
+    default: {
+      work: {
+        ...defaultVisaRequirements.work,
+        visaType: "Work Permit (L/B/C Permit)",
+        processingTime: "6-12 weeks",
+        fees: "CHF 65-150",
+        documents: [
+          ...defaultVisaRequirements.work.documents,
+          { name: "Employer Application", description: "Swiss employer must apply to cantonal authorities", required: true },
+          { name: "Proof of No Local Candidate", description: "Evidence position couldn't be filled locally", required: true },
+        ],
+        rejectionReasons: [
+          ...defaultVisaRequirements.work.rejectionReasons,
+          "Annual quota for non-EU workers exhausted",
+          "Insufficient proof of specialized skills",
+        ],
+        tips: [
+          "Switzerland has strict quotas for non-EU/EFTA workers",
+          "L permit for short-term (up to 1 year), B permit for long-term",
+          "Highly specialized roles have better approval chances",
+          "Salary must meet Swiss standards for the position",
+        ],
+      },
+    },
+  },
+  IE: {
+    default: {
+      work: {
+        ...defaultVisaRequirements.work,
+        visaType: "Employment Permit",
+        processingTime: "4-12 weeks",
+        fees: "€1,000",
+        documents: [
+          ...defaultVisaRequirements.work.documents,
+          { name: "Employment Permit", description: "Approved permit from DETE", required: true },
+          { name: "Labor Market Needs Test", description: "Proof job was advertised locally for 28 days", required: true },
+        ],
+        tips: [
+          "Critical Skills permit for in-demand occupations (faster processing)",
+          "ICT permit available for intra-company transfers",
+          "Spouse can get Stamp 1G open work permit",
+          "Path to permanent residence after 5 years",
+        ],
+      },
+      study: {
+        ...defaultVisaRequirements.study,
+        visaType: "Study Visa (Stamp 2)",
+        processingTime: "4-8 weeks",
+        fees: "€60",
+        documents: [
+          ...defaultVisaRequirements.study.documents,
+          { name: "Course Fee Payment", description: "Proof of tuition payment or scholarship", required: true },
+          { name: "Medical Insurance", description: "Private health insurance for Ireland", required: true },
+        ],
+        tips: [
+          "Students can work 20 hours/week during term, 40 hours during holidays",
+          "Third Level Graduate Scheme allows 1-2 years post-study work",
+          "GNIB registration required within 90 days of arrival",
+          "Minimum funds requirement of €10,000 in bank account",
+        ],
+      },
+    },
+  },
+  KR: {
+    default: {
+      work: {
+        ...defaultVisaRequirements.work,
+        visaType: "E-7 Skilled Worker Visa",
+        processingTime: "4-8 weeks",
+        fees: "USD $45-90",
+        documents: [
+          ...defaultVisaRequirements.work.documents,
+          { name: "Employer Invitation Letter", description: "Official invitation from Korean employer", required: true },
+          { name: "Degree Verification", description: "Apostilled educational credentials", required: true },
+        ],
+        tips: [
+          "E-7 visa requires employer sponsorship and expertise verification",
+          "H-1 Working Holiday visa available for ages 18-30 from certain countries",
+          "D-10 Job Seeker visa for those with Korean qualifications",
+          "TOPIK score helpful but not always required",
         ],
       },
     },
