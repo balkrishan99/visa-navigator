@@ -32,15 +32,7 @@ const Header = () => {
             </a>
           </nav>
 
-          {/* Desktop CTA */}
-          <div className="hidden md:flex items-center gap-3">
-            <Button variant="ghost" size="sm">
-              Sign In
-            </Button>
-            <Button variant="coral" size="sm">
-              Get Started
-            </Button>
-          </div>
+          {/* Desktop CTA removed */}
 
           {/* Mobile Menu Button */}
           <button
@@ -80,14 +72,7 @@ const Header = () => {
               >
                 FAQ
               </a>
-              <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
-                <Button variant="ghost" className="w-full justify-start">
-                  Sign In
-                </Button>
-                <Button variant="coral" className="w-full">
-                  Get Started
-                </Button>
-              </div>
+              {/* Mobile CTA removed */}
             </nav>
           </div>
         )}

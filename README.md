@@ -1,73 +1,92 @@
-# Welcome to your Lovable project
 
-## Project info
+🌍 Visa Navigator
+<p align="center"> <img src="https://img.shields.io/badge/Status-Active-success?style=for-the-badge"/> <img src="https://img.shields.io/badge/Made%20By-Balkrishan-blue?style=for-the-badge"/> <img src="https://img.shields.io/badge/Open%20Source-Yes-orange?style=for-the-badge"/> </p>
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+✨ About the Project
 
-## How can I edit this code?
+Visa Navigator is a modern web application designed to simplify the process of understanding visa requirements for different countries.
+It provides users with clear guidance, eligibility information, and a smooth navigation experience — all in one place.
 
-There are several ways of editing your application.
+🎯 Goal:
+To make visa-related information easy, accessible, and user-friendly for everyone.
 
-**Use Lovable**
+🚀 Features
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+✅ Country-wise visa information
+✅ Easy-to-use interface
+✅ Fast and responsive UI
+✅ Modern design with clean layouts
+✅ Beginner-friendly navigation
+✅ Open-source and customizable
 
-Changes made via Lovable will be committed automatically to this repo.
+🎨 UI & Theme
 
-**Use your preferred IDE**
+🌈 Modern color palette
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+🧩 Clean and minimal layout
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+📱 Fully responsive (Mobile, Tablet, Desktop)
 
-Follow these steps:
+⚡ Smooth user experience
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+🛠️ Tech Stack
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Frontend: HTML, CSS, JavaScript
 
-# Step 3: Install the necessary dependencies.
-npm i
+Framework / Library: (Add if you used React, etc.)
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+Styling: CSS / Tailwind (update if applicable)
 
-**Edit a file directly in GitHub**
+Version Control: Git & GitHub
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+📂 Project Structure
+visa-navigator/
+│
+├── public/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   ├── assets/
+│   └── styles/
+│
+├── README.md
+└── package.json
 
-**Use GitHub Codespaces**
+⚙️ Installation & Setup
+# Clone the repository
+git clone https://github.com/balkrishan99/visa-navigator.git
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# Navigate to the project
+cd visa-navigator
 
-## What technologies are used for this project?
+# Install dependencies
+npm install
 
-This project is built with:
+# Run the project
+npm start
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+🌟 Future Improvements
 
-## How can I deploy this project?
+🌐 More countries & visa types
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+🔍 Advanced search & filters
 
-## Can I connect a custom domain to my Lovable project?
+🧾 Visa document checklist
 
-Yes, you can!
+🔐 User authentication
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+📊 Application status tracking
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+🤝 Contributing
+
+Contributions are welcome!
+Feel free to fork the repository and submit a pull request.
+
+👨‍💻 Author
+
+Balkrishan
+📌 GitHub: @balkrishan99
+
+📄 License
+
+This project is licensed under the MIT License — feel free to use and modify it.
