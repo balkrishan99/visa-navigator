@@ -39,18 +39,22 @@ Styling: CSS / Tailwind (update if applicable)
 
 Version Control: Git & GitHub
 
-📂 Project Structure
+
+📂 **Project Structure**
+
+```
 visa-navigator/
 │
-├── public/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   ├── assets/
-│   └── styles/
+├── public/           # Static assets (favicon, images, etc.)
+├── src/              # Source code
+│   ├── components/   # Reusable React components
+│   ├── pages/        # Page components/routes
+│   ├── assets/       # Project-specific images, fonts, etc.
+│   └── styles/       # Global and component styles
 │
-├── README.md
-└── package.json
+├── README.md         # Project documentation
+└── package.json      # Project metadata and dependencies
+```
 
 ⚙️ Installation & Setup
 # Clone the repository
