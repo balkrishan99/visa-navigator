@@ -1,0 +1,7 @@
+project_id = "jdvxnbulkhrksyjeqnzh"
+
+[functions.visa-chat]
+verify_jwt = false
+
+[functions.analyze-document]
+verify_jwt = false

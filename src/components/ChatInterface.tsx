@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Bot, User, Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
+import { toast } from "sonner";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -18,13 +19,18 @@ const countryNames: Record<string, string> = {
   DE: "Germany", FR: "France", JP: "Japan", SG: "Singapore", AE: "UAE",
   NZ: "New Zealand", IN: "India", CN: "China", BR: "Brazil", MX: "Mexico",
   ZA: "South Africa", NG: "Nigeria", PH: "Philippines", PK: "Pakistan",
+  IT: "Italy", ES: "Spain", NL: "Netherlands", PT: "Portugal", CH: "Switzerland",
+  SE: "Sweden", NO: "Norway", DK: "Denmark", BE: "Belgium", AT: "Austria",
+  IE: "Ireland", PL: "Poland", GR: "Greece", CZ: "Czech Republic",
 };
+
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/visa-chat`;
 
 const ChatInterface = ({ nationality, destination, purpose }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: `Hello! I'm your VisaVerse AI assistant. I can help you with questions about your ${purpose} visa application to ${countryNames[destination]}. What would you like to know?`
+      content: `Hello! I'm your VisaVerse AI assistant. I can help you with questions about your ${purpose} visa application to ${countryNames[destination] || destination}. What would you like to know?`
     }
   ]);
   const [input, setInput] = useState("");
@@ -39,46 +45,89 @@ const ChatInterface = ({ nationality, destination, purpose }: ChatInterfaceProps
     scrollToBottom();
   }, [messages]);
 
-  const generateResponse = (question: string): string => {
-    const q = question.toLowerCase();
-    
-    if (q.includes('spouse') || q.includes('family') || q.includes('dependent')) {
-      return `Yes, ${countryNames[destination]} allows dependent visas. Your spouse can apply for a dependent visa alongside your ${purpose} visa. Required documents include marriage certificate, proof of relationship, and proof of accommodation. The processing time is usually similar to the main applicant's visa.`;
-    }
-    
-    if (q.includes('how long') || q.includes('processing') || q.includes('time')) {
-      return `Processing times for ${countryNames[destination]} ${purpose} visas typically range from 4-12 weeks, depending on your nationality and the embassy's current workload. I recommend applying at least 3 months before your intended travel date to allow for any delays.`;
-    }
-    
-    if (q.includes('cost') || q.includes('fee') || q.includes('price')) {
-      return `The visa application fee for ${countryNames[destination]} varies by visa type. ${purpose === 'work' ? 'Work visas typically cost $150-300 USD' : purpose === 'study' ? 'Student visas typically cost $100-250 USD' : 'Tourist visas typically cost $50-150 USD'}. Additional costs may include biometrics, courier services, and document translation.`;
-    }
-    
-    if (q.includes('reject') || q.includes('denied') || q.includes('refuse')) {
-      return `Common reasons for visa rejection include incomplete documentation, insufficient funds, weak ties to home country, and inconsistent information. To improve your chances: provide complete documentation, maintain stable bank balance, and clearly demonstrate the purpose of your trip and intention to return.`;
-    }
-    
-    if (q.includes('interview') || q.includes('embassy') || q.includes('appointment')) {
-      return `Visa interviews at the ${countryNames[destination]} embassy typically last 5-15 minutes. Be prepared to explain your travel purpose, ties to your home country, and financial situation. Dress professionally, arrive early, and bring original documents along with copies.`;
-    }
-    
-    return `That's a great question about ${countryNames[destination]} visas. Based on current immigration policies, I'd recommend checking the official embassy website for the most up-to-date information, or feel free to ask me about specific requirements, documents, processing times, or application tips.`;
-  };
-
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
     const userMessage = input.trim();
     setInput("");
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    const userMsg: Message = { role: 'user', content: userMessage };
+    setMessages(prev => [...prev, userMsg]);
     setIsLoading(true);
 
-    // Simulate AI response
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const response = generateResponse(userMessage);
-    setMessages(prev => [...prev, { role: 'assistant', content: response }]);
-    setIsLoading(false);
+    let assistantContent = "";
+
+    try {
+      const resp = await fetch(CHAT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
+          nationality,
+          destination,
+          purpose,
+        }),
+      });
+
+      if (!resp.ok) {
+        const errorData = await resp.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to get response");
+      }
+
+      if (!resp.body) throw new Error("No response body");
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = "";
+
+      // Add empty assistant message to update
+      setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        textBuffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") break;
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              assistantContent += content;
+              setMessages(prev => {
+                const newMessages = [...prev];
+                newMessages[newMessages.length - 1] = { role: 'assistant', content: assistantContent };
+                return newMessages;
+              });
+            }
+          } catch {
+            textBuffer = line + "\n" + textBuffer;
+            break;
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Chat error:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to get AI response");
+      // Remove the empty assistant message on error
+      setMessages(prev => prev.filter((_, i) => i !== prev.length - 1 || prev[prev.length - 1].content !== ''));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -102,7 +151,6 @@ const ChatInterface = ({ nationality, destination, purpose }: ChatInterfaceProps
         <p className="text-sm text-muted-foreground">Get instant answers to your visa questions</p>
       </div>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
         {messages.map((message, index) => (
           <div
@@ -123,12 +171,12 @@ const ChatInterface = ({ nationality, destination, purpose }: ChatInterfaceProps
                 ? 'bg-primary text-primary-foreground rounded-tr-none'
                 : 'bg-secondary text-foreground rounded-tl-none'
             }`}>
-              <p className="text-sm leading-relaxed">{message.content}</p>
+              <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
             </div>
           </div>
         ))}
         
-        {isLoading && (
+        {isLoading && messages[messages.length - 1]?.content === '' && (
           <div className="flex gap-3">
             <div className="shrink-0 w-8 h-8 rounded-full bg-teal flex items-center justify-center">
               <Bot className="w-4 h-4 text-accent-foreground" />
@@ -142,7 +190,6 @@ const ChatInterface = ({ nationality, destination, purpose }: ChatInterfaceProps
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Suggested questions */}
       {messages.length <= 2 && (
         <div className="flex flex-wrap gap-2 mb-4">
           {suggestedQuestions.map((q, i) => (
@@ -157,7 +204,6 @@ const ChatInterface = ({ nationality, destination, purpose }: ChatInterfaceProps
         </div>
       )}
 
-      {/* Input */}
       <div className="flex gap-2">
         <input
           type="text"

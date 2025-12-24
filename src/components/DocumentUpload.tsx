@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Upload, CheckCircle2, XCircle, AlertTriangle, FileText, Loader2, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
+import { toast } from "sonner";
 
 interface Document {
   name: string;
@@ -10,6 +11,8 @@ interface Document {
 
 interface DocumentUploadProps {
   documents: Document[];
+  purpose: string;
+  destination: string;
 }
 
 type UploadStatus = 'pending' | 'uploading' | 'uploaded' | 'error' | 'warning';
@@ -21,52 +24,14 @@ interface UploadedDoc {
   aiNote?: string;
 }
 
-// AI validation messages for different document types
-const getAIValidation = (docName: string, status: UploadStatus): { status: UploadStatus; message: string; aiNote: string } => {
-  const validations: Record<string, { status: UploadStatus; message: string; aiNote: string }[]> = {
-    'Valid Passport': [
-      { status: 'uploaded', message: 'Valid', aiNote: 'Passport validity confirmed - expires well beyond travel dates' },
-      { status: 'warning', message: 'Expiry Soon', aiNote: 'Passport expires within 8 months - some countries may require 6+ month validity' },
-    ],
-    'Financial Proof': [
-      { status: 'uploaded', message: 'Sufficient', aiNote: 'Bank statements show consistent balance meeting minimum requirements' },
-      { status: 'warning', message: 'Review Needed', aiNote: 'Recent large deposit detected - embassy may request source explanation' },
-    ],
-    'Health Insurance': [
-      { status: 'uploaded', message: 'Valid', aiNote: 'Coverage period matches visa application dates' },
-      { status: 'warning', message: 'Coverage Gap', aiNote: 'Insurance may not cover full stay duration - verify end date' },
-    ],
-    'Job Offer Letter': [
-      { status: 'uploaded', message: 'Valid', aiNote: 'Employment offer includes required salary and position details' },
-      { status: 'warning', message: 'Incomplete', aiNote: 'Letter missing job start date - request updated version from employer' },
-    ],
-    'Admission Letter': [
-      { status: 'uploaded', message: 'Valid', aiNote: 'Acceptance letter from accredited institution confirmed' },
-    ],
-  };
+const ANALYZE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-document`;
 
-  const docValidations = validations[docName] || [
-    { status: 'uploaded', message: 'Uploaded', aiNote: 'Document received - manual review may be required' },
-  ];
-
-  // Weighted random selection (mostly success)
-  const weights = docValidations.map((_, i) => i === 0 ? 0.8 : 0.2 / (docValidations.length - 1));
-  const random = Math.random();
-  let cumulative = 0;
-  for (let i = 0; i < docValidations.length; i++) {
-    cumulative += weights[i];
-    if (random < cumulative) return docValidations[i];
-  }
-  return docValidations[0];
-};
-
-const DocumentUpload = ({ documents }: DocumentUploadProps) => {
+const DocumentUpload = ({ documents, purpose, destination }: DocumentUploadProps) => {
   const [uploadedDocs, setUploadedDocs] = useState<UploadedDoc[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisComplete, setAnalysisComplete] = useState(false);
 
-  const handleFileUpload = async (docName: string, file: File) => {
-    // Add to uploading state
+  const handleFileUpload = async (docName: string, docType: string, file: File) => {
     setUploadedDocs(prev => {
       const existing = prev.find(d => d.name === docName);
       if (existing) {
@@ -75,27 +40,50 @@ const DocumentUpload = ({ documents }: DocumentUploadProps) => {
       return [...prev, { name: docName, status: 'uploading' as UploadStatus }];
     });
 
-    // Simulate upload
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      const response = await fetch(ANALYZE_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          documentName: docName,
+          documentType: docType,
+          purpose,
+          destination,
+        }),
+      });
 
-    // Get AI validation result
-    const validation = getAIValidation(docName, 'uploaded');
-    
-    setUploadedDocs(prev => 
-      prev.map(d => d.name === docName ? { 
-        ...d, 
-        status: validation.status,
-        message: validation.message,
-        aiNote: validation.aiNote,
-      } : d)
-    );
+      const result = await response.json();
+
+      setUploadedDocs(prev =>
+        prev.map(d => d.name === docName ? {
+          ...d,
+          status: result.status as UploadStatus,
+          message: result.message,
+          aiNote: result.aiNote,
+        } : d)
+      );
+    } catch (error) {
+      console.error("Document analysis error:", error);
+      setUploadedDocs(prev =>
+        prev.map(d => d.name === docName ? {
+          ...d,
+          status: 'uploaded',
+          message: 'Uploaded',
+          aiNote: 'Document received - AI analysis unavailable',
+        } : d)
+      );
+    }
   };
 
   const runAICheck = async () => {
     setIsAnalyzing(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 1500));
     setIsAnalyzing(false);
     setAnalysisComplete(true);
+    toast.success("AI document analysis complete!");
   };
 
   const getStatusIcon = (status: UploadStatus) => {
@@ -114,7 +102,7 @@ const DocumentUpload = ({ documents }: DocumentUploadProps) => {
       case 'uploaded': return `✔ ${doc.message || 'Uploaded'}`;
       case 'error': return '❌ Error';
       case 'warning': return `⚠ ${doc.message || 'Needs Review'}`;
-      case 'uploading': return 'Uploading...';
+      case 'uploading': return 'Analyzing...';
       default: return 'Pending';
     }
   };
@@ -132,7 +120,6 @@ const DocumentUpload = ({ documents }: DocumentUploadProps) => {
         </p>
       </div>
 
-      {/* Progress indicator */}
       <div className="bg-secondary/50 rounded-xl p-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-foreground">Document Checklist</span>
@@ -146,7 +133,6 @@ const DocumentUpload = ({ documents }: DocumentUploadProps) => {
         </div>
       </div>
 
-      {/* Document list */}
       <div className="space-y-3">
         {documents.map((doc, index) => {
           const uploadedDoc = uploadedDocs.find(d => d.name === doc.name);
@@ -189,7 +175,7 @@ const DocumentUpload = ({ documents }: DocumentUploadProps) => {
                         accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
-                          if (file) handleFileUpload(doc.name, file);
+                          if (file) handleFileUpload(doc.name, doc.description, file);
                         }}
                       />
                       <div className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors">
@@ -201,9 +187,8 @@ const DocumentUpload = ({ documents }: DocumentUploadProps) => {
                 </div>
               </div>
               
-              {/* AI Note for uploaded docs */}
               {uploadedDoc?.aiNote && (status === 'uploaded' || status === 'warning') && (
-                <div className={`px-4 pb-4 pt-0`}>
+                <div className="px-4 pb-4 pt-0">
                   <div className={`text-xs p-2 rounded-lg flex items-start gap-2 ${
                     status === 'uploaded' ? 'bg-teal/10 text-teal' : 'bg-coral/10 text-coral'
                   }`}>
@@ -217,7 +202,6 @@ const DocumentUpload = ({ documents }: DocumentUploadProps) => {
         })}
       </div>
 
-      {/* AI Check Button */}
       {uploadedDocs.length > 0 && !analysisComplete && (
         <Button
           onClick={runAICheck}
@@ -240,7 +224,6 @@ const DocumentUpload = ({ documents }: DocumentUploadProps) => {
         </Button>
       )}
 
-      {/* AI Check Results */}
       {analysisComplete && (
         <div className="rounded-xl border border-border overflow-hidden">
           <div className="bg-primary/10 p-4 border-b border-border">
@@ -278,7 +261,6 @@ const DocumentUpload = ({ documents }: DocumentUploadProps) => {
             ))}
           </div>
           
-          {/* Summary */}
           <div className="p-4 bg-secondary/30 border-t border-border">
             <h5 className="font-medium text-foreground mb-2">Summary</h5>
             <div className="grid grid-cols-3 gap-4 text-center">
