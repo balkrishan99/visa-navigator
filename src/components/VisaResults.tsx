@@ -11,12 +11,19 @@ import {
   Upload,
   MessageCircle,
   Shield,
-  XCircle
+  DollarSign,
+  Calendar
 } from "lucide-react";
 import { Button } from "./ui/button";
 import DocumentUpload from "./DocumentUpload";
 import ChatInterface from "./ChatInterface";
 import RejectionRiskPanel from "./RejectionRiskPanel";
+import { 
+  countryNames, 
+  countryFlags, 
+  getVisaRequirements, 
+  generateAIExplanation 
+} from "@/data/visaDatabase";
 
 interface VisaResultsProps {
   nationality: string;
@@ -24,19 +31,6 @@ interface VisaResultsProps {
   purpose: string;
   onReset: () => void;
 }
-
-const countryNames: Record<string, string> = {
-  US: "United States", GB: "United Kingdom", CA: "Canada", AU: "Australia",
-  DE: "Germany", FR: "France", JP: "Japan", SG: "Singapore", AE: "UAE",
-  NZ: "New Zealand", IN: "India", CN: "China", BR: "Brazil", MX: "Mexico",
-  ZA: "South Africa", NG: "Nigeria", PH: "Philippines", PK: "Pakistan",
-};
-
-const countryFlags: Record<string, string> = {
-  US: "🇺🇸", GB: "🇬🇧", CA: "🇨🇦", AU: "🇦🇺", DE: "🇩🇪", FR: "🇫🇷",
-  JP: "🇯🇵", SG: "🇸🇬", AE: "🇦🇪", NZ: "🇳🇿", IN: "🇮🇳", CN: "🇨🇳",
-  BR: "🇧🇷", MX: "🇲🇽", ZA: "🇿🇦", NG: "🇳🇬", PH: "🇵🇭", PK: "🇵🇰",
-};
 
 const purposeLabels: Record<string, string> = {
   work: "Work Visa",
@@ -48,27 +42,9 @@ const VisaResults = ({ nationality, destination, purpose, onReset }: VisaResults
   const [showAIExplanation, setShowAIExplanation] = useState(false);
   const [activeTab, setActiveTab] = useState<'results' | 'upload' | 'risk' | 'chat'>('results');
 
-  const visaInfo = {
-    type: purpose === 'work' ? "Employment Visa" : purpose === 'study' ? "Student Visa" : "Tourist Visa",
-    processingTime: purpose === 'work' ? "6-12 weeks" : purpose === 'study' ? "4-8 weeks" : "2-4 weeks",
-    documents: [
-      { name: "Passport (valid 6+ months)", required: true },
-      { name: purpose === 'work' ? "Job Offer Letter" : purpose === 'study' ? "Admission Letter" : "Travel Itinerary", required: true },
-      { name: "Proof of Qualifications", required: purpose === 'work' || purpose === 'study' },
-      { name: "Financial Proof", required: true },
-      { name: "Health Insurance", required: true },
-    ].filter(d => d.required),
-    rejectionReasons: [
-      "Incomplete financial proof",
-      "Unverified employer/institution",
-      "Insufficient qualifications",
-    ],
-    aiExplanation: purpose === 'work' 
-      ? `You need a job offer from a ${countryNames[destination]} employer. The salary must meet the minimum threshold set by immigration authorities. Bank statements should show stable income over the last 3 months. Your employer may need to prove they couldn't find a local candidate for this role.`
-      : purpose === 'study'
-      ? `You need an acceptance letter from a recognized ${countryNames[destination]} educational institution. You must demonstrate sufficient funds to cover tuition and living expenses for the duration of your studies. Health insurance coverage is mandatory.`
-      : `You'll need to show proof of accommodation, return flights, and sufficient funds for your stay. Travel insurance is highly recommended. Make sure your passport is valid for at least 6 months beyond your planned departure date.`,
-  };
+  // Get visa requirements from database
+  const visaInfo = getVisaRequirements(nationality, destination, purpose as 'work' | 'study' | 'travel');
+  const aiExplanation = generateAIExplanation(nationality, destination, purpose);
 
   return (
     <section className="py-8 md:py-12 bg-gradient-hero">
@@ -122,7 +98,19 @@ const VisaResults = ({ nationality, destination, purpose, onReset }: VisaResults
                       Eligible Visa Type
                     </h3>
                     <div className="pl-4 border-l-2 border-primary/20">
-                      <p className="font-medium text-foreground">{countryNames[destination]} {visaInfo.type}</p>
+                      <p className="font-medium text-foreground">{countryNames[destination]} {visaInfo.visaType}</p>
+                      {visaInfo.validity && (
+                        <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                          <Calendar className="w-3 h-3" />
+                          Validity: {visaInfo.validity}
+                        </p>
+                      )}
+                      {visaInfo.fees && (
+                        <p className="text-sm text-muted-foreground flex items-center gap-1">
+                          <DollarSign className="w-3 h-3" />
+                          Fees: {visaInfo.fees}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -130,13 +118,16 @@ const VisaResults = ({ nationality, destination, purpose, onReset }: VisaResults
                   <div className="space-y-3">
                     <h3 className="flex items-center gap-2 text-sm font-semibold text-primary">
                       <div className="w-2 h-2 rounded-full bg-primary" />
-                      Required Documents
+                      Required Documents ({visaInfo.documents.length})
                     </h3>
                     <div className="pl-4 space-y-2">
                       {visaInfo.documents.map((doc, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-teal shrink-0" />
-                          <span className="text-foreground">{doc.name}</span>
+                        <div key={i} className="flex items-start gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-teal shrink-0 mt-0.5" />
+                          <div>
+                            <span className="text-foreground">{doc.name}</span>
+                            <p className="text-xs text-muted-foreground">{doc.description}</p>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -189,7 +180,7 @@ const VisaResults = ({ nationality, destination, purpose, onReset }: VisaResults
                     {showAIExplanation && (
                       <div className="p-4 bg-background border-t border-border">
                         <p className="text-muted-foreground leading-relaxed italic">
-                          "{visaInfo.aiExplanation}"
+                          "{aiExplanation}"
                         </p>
                       </div>
                     )}
@@ -215,6 +206,7 @@ const VisaResults = ({ nationality, destination, purpose, onReset }: VisaResults
               {activeTab === 'risk' && (
                 <RejectionRiskPanel 
                   rejectionReasons={visaInfo.rejectionReasons}
+                  tips={visaInfo.tips}
                   purpose={purpose}
                 />
               )}
